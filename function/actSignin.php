@@ -5,7 +5,22 @@
     $email = @$_POST['email'];
     $password = sha1(@$_POST['password']);
 
-    $sql = "SELECT * FROM users where email = '$email' and password = '$password'";
+    if (isset($_SESSION['login_attempts']) && $_SESSION['login_attempts'] >= 3) {
+        $lockout_duration = 300; 
+        if (time() - $_SESSION['last_login_attempt_time'] < $lockout_duration) {
+            header('Location: '.$host.'signin.php?status=account_locked');
+            exit();
+        } else {
+            unset($_SESSION['login_attempts']);
+            unset($_SESSION['last_login_attempt_time']);
+        }
+    }
+
+    $email = mysqli_real_escape_string($conn, $email);
+    $password = mysqli_real_escape_string($conn, $password);
+
+    $sql = "SELECT * FROM users WHERE email = '$email' AND password = '$password'";
+
     $result = $conn->query($sql);
 
 
